@@ -11,8 +11,8 @@ FROM {{ ref('pit_order') }} AS pit
 INNER JOIN {{ ref('link_order_customer') }} AS loc
     ON pit.order_hk = loc.order_hk
 INNER JOIN {{ ref('sat_order_status') }} AS sos
-    ON pit.order_hk = sos.order_hk
-    AND pit.sat_order_status_ldts = sos.load_date
+    ON
+        pit.order_hk = sos.order_hk
+        AND pit.sat_order_status_ldts = sos.load_date
 INNER JOIN {{ ref('sat_order_metrics') }} AS som
     ON pit.order_hk = som.order_hk
-    

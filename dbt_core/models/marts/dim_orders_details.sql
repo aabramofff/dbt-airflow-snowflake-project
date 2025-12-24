@@ -9,4 +9,3 @@ SELECT
 FROM {{ ref('hub_order') }} AS h
 LEFT JOIN {{ ref('sat_order_details') }} AS s
     ON h.order_hk = s.order_hk
-    

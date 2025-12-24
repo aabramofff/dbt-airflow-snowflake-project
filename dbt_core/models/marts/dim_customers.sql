@@ -11,4 +11,3 @@ LEFT JOIN {{ ref('sat_customer_invar') }} AS s_inv
     ON h.customer_hk = s_inv.customer_hk
 LEFT JOIN {{ ref('sat_customer_var') }} AS s_var
     ON h.customer_hk = s_var.customer_hk
-    
