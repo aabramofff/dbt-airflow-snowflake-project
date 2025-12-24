@@ -3,11 +3,9 @@ from datetime import datetime
 from pathlib import Path
 
 from airflow import DAG
-from cosmos import DbtDag, ProjectConfig, ProfileConfig, ExecutionConfig
+from cosmos import DbtTaskGroup, ProjectConfig, ProfileConfig, ExecutionConfig, RenderConfig
 from cosmos.profiles import SnowflakeUserPasswordProfileMapping
-from loguru import logger
-
-logger.add("/opt/airflow/logs/dbt_vault_render.log", rotation="1 MB")
+from cosmos.constants import LoadMode
 
 DBT_PROJECT_PATH = Path("/opt/airflow/dbt_core")
 
@@ -23,19 +21,28 @@ execution_config = ExecutionConfig(
     dbt_executable_path="/home/airflow/.local/bin/dbt",
 )
 
-data_vault_dag = DbtDag(
-    project_config=ProjectConfig(
-        DBT_PROJECT_PATH,
-    ),
-    profile_config=profile_config,
-    execution_config=execution_config,
-    operator_args={
-        "install_deps": True,
-    },
-    schedule_interval="@daily",
+with DAG(
+    dag_id="dbt_data_vault_modular",
     start_date=datetime(2025, 1, 1),
+    schedule_interval="@daily",
     catchup=False,
-    dag_id="dbt_data_vault_snowflake",
-)
+) as dag:
 
-logger.info("DAG 'dbt_data_vault_snowflake' successfully loaded and ready to start.")
+    def create_layer_group(group_id: str, tag: str):
+        return DbtTaskGroup(
+            group_id=group_id,
+            project_config=ProjectConfig(DBT_PROJECT_PATH),
+            profile_config=profile_config,
+            execution_config=execution_config,
+            render_config=RenderConfig(
+                select=[f"tag:{tag}"],
+                load_method=LoadMode.DBT_LS
+            )
+        )
+
+    staging = create_layer_group("staging_layer", "staging")
+    raw_vault = create_layer_group("raw_vault_layer", "raw_vault")
+    business_vault = create_layer_group("business_vault_layer", "business_vault")
+    marts = create_layer_group("marts_layer", "marts")
+
+    staging >> raw_vault >> business_vault >> marts
