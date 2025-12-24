@@ -42,3 +42,8 @@ models:
     raw_vault:
       +schema: raw_vault
       +materialized: incremental
+
+    business_vault:
+      +schema: business_vault
+    marts:
+      +schema: marts
