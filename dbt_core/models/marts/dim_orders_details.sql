@@ -6,5 +6,7 @@ SELECT
     s.order_date,
     s.clerk_name,
     s.order_priority
-FROM {{ ref('hub_order') }} h
-LEFT JOIN {{ ref('sat_order_details') }} s ON h.order_hk = s.order_hk
+FROM {{ ref('hub_order') }} AS h
+LEFT JOIN {{ ref('sat_order_details') }} AS s
+    ON h.order_hk = s.order_hk
+    
