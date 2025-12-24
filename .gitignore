@@ -1,0 +1,41 @@
+# === Secrets ===
+.env
+*.env
+
+# === dbt ===
+dbt_core/target/
+dbt_core/dbt_packages/
+dbt_core/logs/
+dbt_core/snapshots
+dbt_core/.user.yml
+dbt_core/tests
+dbt_core/README.md
+
+# === Python ===
+.venv/
+env/
+venv/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# === uv manager ===
+.uv
+
+# === SQLFluff ===
+.sqlfluffcache
+
+# === System files ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# === Logs ===
+logs/
