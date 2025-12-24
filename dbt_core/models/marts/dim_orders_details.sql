@@ -1,4 +1,4 @@
-{{ config(materialized='table', tags=['marts']) }}
+{{ config(materialized='table') }}
 
 SELECT
     h.order_hk AS order_key,

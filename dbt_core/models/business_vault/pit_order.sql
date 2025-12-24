@@ -1,4 +1,4 @@
-{{ config(materialized='table', tags=['business_vault']) }}
+{{ config(materialized='table') }}
 
 SELECT
     h.order_hk,
