@@ -52,3 +52,7 @@ models:
     marts:
       +schema: marts
       +tags: ["marts"]
+    
+seeds:
+  dbt_core:
+    +schema: staging
