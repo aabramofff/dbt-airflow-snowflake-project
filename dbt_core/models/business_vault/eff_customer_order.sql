@@ -4,7 +4,7 @@
 ) }}
 
 WITH link_data AS (
-    SELECT 
+    SELECT
         order_hk,
         customer_hk,
         load_date,
@@ -24,9 +24,10 @@ FROM link_data
 
 {% if is_incremental() %}
     WHERE NOT EXISTS (
-        SELECT 1 
-        FROM {{ this }} AS t 
-        WHERE t.order_hk = link_data.order_hk 
-          AND t.customer_hk = link_data.customer_hk
+        SELECT 1
+        FROM {{ this }} AS t
+        WHERE
+            t.order_hk = link_data.order_hk
+            AND t.customer_hk = link_data.customer_hk
     )
 {% endif %}
