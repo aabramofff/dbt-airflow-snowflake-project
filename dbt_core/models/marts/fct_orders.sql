@@ -1,18 +1,32 @@
 {{ config(materialized='table') }}
 
+WITH pit AS (
+    SELECT * FROM {{ ref('pit_order') }}
+),
+
+order_customer_link AS (
+    SELECT
+        order_hk,
+        customer_hk
+    FROM {{ ref('link_order_customer') }}
+)
+
 SELECT
     pit.order_hk AS order_key,
     loc.customer_hk AS customer_key,
-    sos.total_price,
-    sos.order_status,
-    som.tax_amount,
-    som.net_amount
-FROM {{ ref('pit_order') }} AS pit
-INNER JOIN {{ ref('link_order_customer') }} AS loc
+    ss.total_price,
+    ss.order_status,
+    sd.order_priority,
+    sd.clerk_name,
+    CAST(sd.order_date AS DATE) AS order_date_key
+FROM pit
+LEFT JOIN order_customer_link AS loc
     ON pit.order_hk = loc.order_hk
-INNER JOIN {{ ref('sat_order_status') }} AS sos
+LEFT JOIN {{ ref('sat_order_details') }} AS sd
     ON
-        pit.order_hk = sos.order_hk
-        AND pit.sat_order_status_ldts = sos.load_date
-INNER JOIN {{ ref('sat_order_metrics') }} AS som
-    ON pit.order_hk = som.order_hk
+        pit.order_hk = sd.order_hk
+        AND pit.sat_order_details_ldts = sd.load_date
+LEFT JOIN {{ ref('sat_order_status') }} AS ss
+    ON
+        pit.order_hk = ss.order_hk
+        AND pit.sat_order_status_ldts = ss.load_date
