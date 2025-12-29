@@ -12,6 +12,6 @@ FROM {{ ref('stg_orders') }}
     WHERE
         hashdiff NOT IN (
             SELECT hashdiff FROM {{ this }}
-            WHERE order_hk = order_hk
         )
+        AND load_date >= (SELECT MAX(load_date) FROM {{ this }})
 {% endif %}

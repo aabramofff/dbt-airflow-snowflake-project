@@ -11,8 +11,7 @@ SELECT
     record_source
 FROM {{ ref('stg_orders') }}
 {% if is_incremental() %}
-    WHERE order_details_hashdiff NOT IN (
-        SELECT hashdiff FROM {{ this }}
-        WHERE order_hk = order_hk
-    )
+    WHERE
+        hashdiff NOT IN (SELECT hashdiff FROM {{ this }})
+        AND load_date >= (SELECT MAX(load_date) FROM {{ this }})
 {% endif %}

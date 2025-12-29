@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='incremental') }}
 
 SELECT
     h.order_hk,
@@ -6,6 +6,16 @@ SELECT
     MAX(sd.load_date) AS sat_order_details_ldts,
     MAX(ss.load_date) AS sat_order_status_ldts
 FROM {{ ref('hub_order') }} AS h
-LEFT JOIN {{ ref('sat_order_details') }} AS sd ON h.order_hk = sd.order_hk
-LEFT JOIN {{ ref('sat_order_status') }} AS ss ON h.order_hk = ss.order_hk
+LEFT JOIN {{ ref('sat_order_details') }} AS sd
+    ON h.order_hk = sd.order_hk
+LEFT JOIN {{ ref('sat_order_status') }} AS ss
+    ON h.order_hk = ss.order_hk
+
+{% if is_incremental() %}
+    WHERE
+        h.load_date > (SELECT MAX(as_of_date) FROM {{ this }})
+        OR sd.load_date > (SELECT MAX(as_of_date) FROM {{ this }})
+        OR ss.load_date > (SELECT MAX(as_of_date) FROM {{ this }})
+{% endif %}
+
 GROUP BY 1, 2
