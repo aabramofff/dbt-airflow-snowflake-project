@@ -23,6 +23,6 @@ FROM (
     WHERE
         hashdiff NOT IN (
             SELECT hashdiff FROM {{ this }}
-            WHERE customer_hk = customer_hk
         )
+        AND load_date > (SELECT MAX(load_date) FROM {{ this }})
 {% endif %}
