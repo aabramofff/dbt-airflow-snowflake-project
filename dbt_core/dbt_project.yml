@@ -38,8 +38,7 @@ models:
       +schema: staging
       +materialized: view
       +tags: ["staging"]
-  
-      # Слой Raw Vault
+
     raw_vault:
       +schema: raw_vault
       +materialized: incremental
@@ -52,7 +51,3 @@ models:
     marts:
       +schema: marts
       +tags: ["marts"]
-    
-seeds:
-  dbt_core:
-    +schema: staging
