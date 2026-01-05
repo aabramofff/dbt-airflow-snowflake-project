@@ -39,3 +39,6 @@ Thumbs.db
 
 # === Logs ===
 logs/
+
+# === Ruff Cache ===
+.ruff_cache
