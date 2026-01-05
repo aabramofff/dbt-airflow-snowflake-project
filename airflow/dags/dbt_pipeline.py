@@ -1,4 +1,3 @@
-import os
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +13,7 @@ from cosmos import (
 )
 from cosmos.profiles import SnowflakeUserPasswordProfileMapping
 from cosmos.constants import LoadMode
+from utils.telegram_notify import on_failure_callback, on_success_callback
 
 DBT_PROJECT_PATH = Path("/opt/airflow/dbt_core")
 
@@ -23,11 +23,21 @@ def log_status(status, context):
     logging.info(f"--- Task {task_id}: {status} at {datetime.now()} ---")
 
 
+def failure_handler(context):
+    log_status("FAILED", context)
+    on_failure_callback(context)
+
+
+def success_handler(context):
+    log_status("SUCCESS", context)
+    on_success_callback(context)
+
+
 default_args = {
     "owner": "airflow",
     "on_execute_callback": lambda context: log_status("STARTED", context),
-    "on_success_callback": lambda context: log_status("SUCCESS", context),
-    "on_failure_callback": lambda context: log_status("FAILED", context),
+    "on_success_callback": success_handler,
+    "on_failure_callback": failure_handler,
 }
 
 profile_config = ProfileConfig(
@@ -41,13 +51,6 @@ profile_config = ProfileConfig(
 execution_config = ExecutionConfig(
     dbt_executable_path="/home/airflow/.local/bin/dbt",
 )
-
-
-def run_dbt_deps():
-    os.system(
-        f"{execution_config.dbt_executable_path} deps --project-dir {DBT_PROJECT_PATH}"
-    )
-
 
 with DAG(
     dag_id="dbt_data_vault_modular",
@@ -63,7 +66,6 @@ with DAG(
             group_id=group_id,
             project_config=ProjectConfig(
                 dbt_project_path=DBT_PROJECT_PATH,
-                # partial_parse = True,
             ),
             profile_config=profile_config,
             execution_config=execution_config,
