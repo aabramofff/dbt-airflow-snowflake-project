@@ -1,44 +1,74 @@
 import os
-import logging
+import requests
+from airflow.models import Variable
+from airflow.hooks.base import BaseHook
+from utils.dbt_logger import log
 
-try:
-    import requests
-except ImportError:
-    requests = None
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+def _get_telegram_creds():
+    """
+    Ищет токен и chat_id в трех местах по приоритету:
+    1. Airflow Variable 'telegram_config' (JSON)
+    2. Airflow Connection 'telegram_default'
+    3. Окружение (Environment Variables)
+    """
+    try:
+        cfg = Variable.get("telegram_config", deserialize_json=True, default_var=None)
+        if cfg and "token" in cfg and "chat_id" in cfg:
+            return cfg["token"], cfg["chat_id"]
+    except Exception:
+        pass
+
+    try:
+        conn = BaseHook.get_connection("telegram_default")
+        if conn.password and conn.host:
+            return conn.password, conn.host
+    except Exception:
+        pass
+
+    token = os.getenv("TELEGRAM_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+
+    return token, chat_id
 
 
 def send_telegram_message(message: str):
-    if not requests:
-        logging.error("Requests library not found. Cannot send Telegram message.")
-        return
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        logging.error("Telegram credentials missing.")
+    token, chat_id = _get_telegram_creds()
+
+    if not token or not chat_id:
+        log.warning("Telegram credentials not found. Skipping notification.")
         return
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": message,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+
     try:
         response = requests.post(url, json=payload, timeout=10)
         response.raise_for_status()
     except Exception as e:
-        logging.error(f"Telegram error: {e}")
+        log.error(f"Telegram API error: {e}")
 
 
 def on_failure_callback(context):
     ti = context["task_instance"]
+    log_url = ti.log_url
     msg = (
         f"❌ <b>Task Failed</b>\n\n"
         f"<b>DAG:</b> {ti.dag_id}\n"
         f"<b>Task:</b> {ti.task_id}\n"
-        f"<b>Error:</b> <code>{str(context.get('exception'))[:200]}</code>"
+        f"<b>Error:</b> <code>{str(context.get('exception'))[:150]}...</code>\n"
+        f"🔗 <a href='{log_url}'>View Logs</a>"
     )
     send_telegram_message(msg)
 
 
 def on_success_callback(context):
-    if context["task_instance"].task_id == "end":
-        msg = f"✅ <b>DAG Success:</b> {context['task_instance'].dag_id} completed!"
+    ti = context["task_instance"]
+    if ti.task_id == "end":
+        msg = f"✅ <b>DAG Success:</b> {ti.dag_id}\nStatus: All layers loaded successfuly."
         send_telegram_message(msg)
