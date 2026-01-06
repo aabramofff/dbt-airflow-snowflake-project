@@ -1,5 +1,5 @@
 DC = docker compose
-CONTAINER = dbt-airflow-snowflake-project-airflow-scheduler-1
+CONTAINER = airflow-scheduler
 
 DBT_ROOT = /opt/airflow/dbt_core
 DBT_BIN = /home/airflow/.local/bin/dbt
