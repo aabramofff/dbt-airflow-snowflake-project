@@ -1,7 +1,5 @@
-import logging
 from datetime import datetime
 from pathlib import Path
-
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from cosmos import (
@@ -14,31 +12,34 @@ from cosmos import (
 from cosmos.profiles import SnowflakeUserPasswordProfileMapping
 from cosmos.constants import LoadMode
 from utils.telegram_notify import on_failure_callback, on_success_callback
+from utils.dbt_logger import (
+    log_start_callback,
+    log_success_callback,
+    log_failure_callback,
+)
+
 
 DBT_PROJECT_PATH = Path("/opt/airflow/dbt_core")
 
 
-def log_status(status, context):
-    task_id = context["task_instance"].task_id
-    logging.info(f"--- Task {task_id}: {status} at {datetime.now()} ---")
-
-
 def failure_handler(context):
-    log_status("FAILED", context)
+    log_failure_callback(context)
     on_failure_callback(context)
 
 
 def success_handler(context):
-    log_status("SUCCESS", context)
-    on_success_callback(context)
+    log_success_callback(context)
+    if context["task_instance"].task_id == "end":
+        on_success_callback(context)
 
 
 default_args = {
     "owner": "airflow",
-    "on_execute_callback": lambda context: log_status("STARTED", context),
+    "on_execute_callback": log_start_callback,  # Используем Loguru для старта
     "on_success_callback": success_handler,
     "on_failure_callback": failure_handler,
 }
+
 
 profile_config = ProfileConfig(
     profile_name="dbt_core",
