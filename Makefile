@@ -20,6 +20,7 @@ help:
 	@echo run      - Run dbt models
 	@echo build    - Full dbt build
 	@echo clean    - Clear local cache
+	@echo logs     - Watch airflow-scheduler logs
 
 
 up:
