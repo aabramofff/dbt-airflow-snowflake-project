@@ -1,7 +1,4 @@
-{{ config(
-    materialized='incremental',
-    tags=['business_vault']
-) }}
+{{ config(materialized='incremental') }}
 
 WITH link_data AS (
     SELECT
