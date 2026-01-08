@@ -7,10 +7,10 @@ from utils.dbt_logger import log
 
 def _get_telegram_creds():
     """
-    Ищет токен и chat_id в трех местах по приоритету:
+    Searching tocken & chat_id in 3 places by priority:
     1. Airflow Variable 'telegram_config' (JSON)
     2. Airflow Connection 'telegram_default'
-    3. Окружение (Environment Variables)
+    3. Environment (Environment Variables)
     """
     try:
         cfg = Variable.get("telegram_config", deserialize_json=True, default_var=None)

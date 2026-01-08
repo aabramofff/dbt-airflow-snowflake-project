@@ -35,7 +35,7 @@ def success_handler(context):
 
 default_args = {
     "owner": "airflow",
-    "on_execute_callback": log_start_callback,  # Используем Loguru для старта
+    "on_execute_callback": log_start_callback,
     "on_success_callback": success_handler,
     "on_failure_callback": failure_handler,
 }
