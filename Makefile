@@ -23,6 +23,8 @@ help:
 	@echo dbt-build    	- Full dbt build
 	@echo clean    		- Clear local cache
 	@echo logs     		- Watch airflow-scheduler logs
+	@echo uv-sync		- Synchronize Python dependencies from uv.lock
+	@echo uv-add		- Add new package
 
 
 up:
@@ -69,3 +71,10 @@ clean:
 
 dbt-clean:
 	$(DBT_EXEC) clean $(DBT_FLAGS)
+
+uv-sync:
+	$(EXEC) uv sync --system
+
+uv-add:
+	$(EXEC) uv add $(pkg)
+	$(EXEC) uv sync --system
