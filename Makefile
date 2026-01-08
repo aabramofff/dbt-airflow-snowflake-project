@@ -8,19 +8,21 @@ DBT_FLAGS = --project-dir $(DBT_ROOT) --profiles-dir $(DBT_ROOT)
 EXEC = $(DC) exec $(CONTAINER)
 DBT_EXEC = $(EXEC) $(DBT_BIN)
 
-.PHONY: help up down restart logs bash dbt-deps dbt-seed dbt-run dbt-test dbt-full clean
+.PHONY: help up down build build-nocache restart logs bash dbt-deps dbt-seed dbt-run dbt-test dbt-full clean dbt-build
 
 help:
 	@echo Available commands:
-	@echo up       - Start containers
-	@echo down     - Stop containers
-	@echo restart  - Restart containers
-	@echo deps     - Install dbt dependencies
-	@echo seed     - Run dbt seeds
-	@echo run      - Run dbt models
-	@echo build    - Full dbt build
-	@echo clean    - Clear local cache
-	@echo logs     - Watch airflow-scheduler logs
+	@echo up       		- Start containers
+	@echo down     		- Stop containers
+	@echo build    		- Аssemble or reassemble project images
+	@echo build-nocache - Assemble project images without cache
+	@echo restart  		- Restart containers
+	@echo deps     		- Install dbt dependencies
+	@echo seed     		- Run dbt seeds
+	@echo run      		- Run dbt models
+	@echo dbt-build    	- Full dbt build
+	@echo clean    		- Clear local cache
+	@echo logs     		- Watch airflow-scheduler logs
 
 
 up:
@@ -28,6 +30,12 @@ up:
 
 down:
 	$(DC) down
+
+build:
+	$(DC) build
+
+build-nocache:
+	$(DC) build --no-cache
 
 restart:
 	$(DC) restart
@@ -51,7 +59,7 @@ run:
 test:
 	$(DBT_EXEC) test $(DBT_FLAGS)
 
-build:
+dbt-build:
 	$(DBT_EXEC) build $(DBT_FLAGS)
 
 
